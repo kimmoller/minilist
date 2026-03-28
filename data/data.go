@@ -88,7 +88,28 @@ func AddItem(description string) error {
 	return WriteToDataFile(data)
 }
 
-// TODO: Add function to delete an item from the list
+func DeleteItem(id int) error {
+	data, err := ReadData()
+	if err != nil {
+		return err
+	}
+
+	idToDelete := -1
+	for i, item := range data.Items {
+		if item.ID == id {
+			idToDelete = i
+		}
+	}
+
+	if idToDelete == -1 {
+		return fmt.Errorf("item with ID %d not found", id)
+	}
+
+	newData := append(data.Items[:idToDelete], data.Items[idToDelete+1:]...)
+	data.Items = newData
+
+	return WriteToDataFile(data)
+}
 
 func CompleteItem(id int) error {
 	data, err := ReadData()
@@ -96,11 +117,18 @@ func CompleteItem(id int) error {
 		return err
 	}
 
-	for i := 0; i < len(data.Items); i++ {
-		if data.Items[i].ID == id {
-			data.Items[i].Status = true
+	idToComplete := -1
+	for i, item := range data.Items {
+		if item.ID == id {
+			idToComplete = i
 		}
 	}
+
+	if idToComplete == -1 {
+		return fmt.Errorf("item with ID %d not found", id)
+	}
+
+	data.Items[idToComplete].Status = true
 
 	return WriteToDataFile(data)
 }
