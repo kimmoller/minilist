@@ -3,11 +3,12 @@ package commands
 import (
 	"strconv"
 
-	"github.com/kimmoller/minilist/data"
+	"github.com/kimmoller/minilist/cli"
+	"github.com/spf13/afero"
 	"github.com/spf13/cobra"
 )
 
-func NewDeleteCmd() *cobra.Command {
+func NewDeleteCmd(fs afero.Fs) *cobra.Command {
 	return &cobra.Command{
 		Use:     "delete",
 		Short:   "Delete a todo item",
@@ -20,7 +21,7 @@ func NewDeleteCmd() *cobra.Command {
 				return err
 			}
 
-			return data.DeleteItem(id)
+			return cli.DeleteItem(fs, id)
 		},
 	}
 }

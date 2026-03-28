@@ -4,11 +4,12 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/kimmoller/minilist/data"
+	"github.com/kimmoller/minilist/cli"
+	"github.com/spf13/afero"
 	"github.com/spf13/cobra"
 )
 
-func NewListCmd() *cobra.Command {
+func NewListCmd(fs afero.Fs) *cobra.Command {
 	var withCompleted bool
 
 	const withCompletedFlag = "all"
@@ -19,7 +20,7 @@ func NewListCmd() *cobra.Command {
 		Args:    cobra.ExactArgs(0),
 		Aliases: []string{"ls"},
 		RunE: func(cmd *cobra.Command, args []string) error {
-			data, err := data.ReadData()
+			data, err := cli.ReadData(fs)
 			if err != nil {
 				return err
 			}

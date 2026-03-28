@@ -3,11 +3,12 @@ package commands
 import (
 	"strconv"
 
-	"github.com/kimmoller/minilist/data"
+	"github.com/kimmoller/minilist/cli"
+	"github.com/spf13/afero"
 	"github.com/spf13/cobra"
 )
 
-func NewCompleteCmd() *cobra.Command {
+func NewCompleteCmd(fs afero.Fs) *cobra.Command {
 	return &cobra.Command{
 		Use:     "complete",
 		Short:   "Complete a todo item",
@@ -20,7 +21,7 @@ func NewCompleteCmd() *cobra.Command {
 				return err
 			}
 
-			return data.CompleteItem(id)
+			return cli.CompleteItem(fs, id)
 		},
 	}
 }

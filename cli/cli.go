@@ -1,4 +1,4 @@
-package data
+package cli
 
 import (
 	"encoding/json"
@@ -28,7 +28,7 @@ func DataFilePath() (string, error) {
 	return fmt.Sprintf("%s/.config/minilist/data.json", homeDir), nil
 }
 
-func WriteToDataFile(data *Data) error {
+func WriteToDataFile(fs afero.Fs, data *Data) error {
 	filePath, err := DataFilePath()
 	if err != nil {
 		return err
@@ -39,17 +39,15 @@ func WriteToDataFile(data *Data) error {
 		return err
 	}
 
-	fs := afero.NewOsFs()
 	return afero.WriteFile(fs, filePath, byteData, 0644)
 }
 
-func ReadData() (*Data, error) {
+func ReadData(fs afero.Fs) (*Data, error) {
 	filePath, err := DataFilePath()
 	if err != nil {
 		return nil, err
 	}
 
-	fs := afero.NewOsFs()
 	byteData, err := afero.ReadFile(fs, filePath)
 	if err != nil {
 		return nil, err
@@ -64,8 +62,8 @@ func ReadData() (*Data, error) {
 	return &data, nil
 }
 
-func AddItem(description string) error {
-	data, err := ReadData()
+func AddItem(fs afero.Fs, description string) error {
+	data, err := ReadData(fs)
 	if err != nil {
 		return err
 	}
@@ -85,11 +83,11 @@ func AddItem(description string) error {
 
 	data.Items = append(data.Items, newItem)
 
-	return WriteToDataFile(data)
+	return WriteToDataFile(fs, data)
 }
 
-func DeleteItem(id int) error {
-	data, err := ReadData()
+func DeleteItem(fs afero.Fs, id int) error {
+	data, err := ReadData(fs)
 	if err != nil {
 		return err
 	}
@@ -108,11 +106,11 @@ func DeleteItem(id int) error {
 	newData := append(data.Items[:idToDelete], data.Items[idToDelete+1:]...)
 	data.Items = newData
 
-	return WriteToDataFile(data)
+	return WriteToDataFile(fs, data)
 }
 
-func CompleteItem(id int) error {
-	data, err := ReadData()
+func CompleteItem(fs afero.Fs, id int) error {
+	data, err := ReadData(fs)
 	if err != nil {
 		return err
 	}
@@ -130,16 +128,15 @@ func CompleteItem(id int) error {
 
 	data.Items[idToComplete].Status = true
 
-	return WriteToDataFile(data)
+	return WriteToDataFile(fs, data)
 }
 
-func EnsureDataFileExists() error {
+func EnsureDataFileExists(fs afero.Fs) error {
 	filePath, err := DataFilePath()
 	if err != nil {
 		return err
 	}
 
-	fs := afero.NewOsFs()
 	exists, err := afero.Exists(fs, filePath)
 	if err != nil {
 		return err
