@@ -2,14 +2,26 @@
 
 Minimalistic todo list
 
+Run minilist -h to see available commands. All individual commands have a help function that will print out requirements and available aliases.
+
+## Data
+
+All data for the minilist application will be stored in a json file located in `~/.config/minilist/data.json`
+
 ## Commands
 
 ### List
 
-List all existing items
+List all existing in progress items
 
 ```
 minilist list
+```
+
+To list all items including completed items, run the commands with the --all flag.
+
+```
+minilist list --all
 ```
 
 ### Add
