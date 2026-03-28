@@ -11,9 +11,16 @@ func NewAddCmd() *cobra.Command {
 	return &cobra.Command{
 		Use:   "add",
 		Short: "add a new todo item",
-		Run: func(cmd *cobra.Command, args []string) {
-			fmt.Println("Add a new todo item")
-			data.AddItem("Test item")
+		RunE: func(cmd *cobra.Command, args []string) error {
+			if len(args) == 0 {
+				return fmt.Errorf("missing description")
+			}
+
+			if len(args) > 1 {
+				return fmt.Errorf("too many arguments")
+			}
+
+			return data.AddItem(args[0])
 		},
 	}
 }

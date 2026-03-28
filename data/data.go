@@ -90,7 +90,20 @@ func AddItem(description string) error {
 
 // TODO: Add function to delete an item from the list
 
-// TODO: Add function to mark item as completed
+func CompleteItem(id int) error {
+	data, err := ReadData()
+	if err != nil {
+		return err
+	}
+
+	for i := 0; i < len(data.Items); i++ {
+		if data.Items[i].ID == id {
+			data.Items[i].Status = true
+		}
+	}
+
+	return WriteToDataFile(data)
+}
 
 func EnsureDataFileExists() error {
 	filePath, err := DataFilePath()
