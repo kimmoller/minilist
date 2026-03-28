@@ -34,6 +34,45 @@ func TestAddItem(t *testing.T) {
 	utils.AssertOutput(t, stdOut, expected)
 }
 
+func TestAddItemWithGapInIds(t *testing.T) {
+	fs := afero.NewMemMapFs()
+
+	filePath, err := cli.DataFilePath()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	items := []cli.Item{
+		{
+			ID:          0,
+			Status:      false,
+			Description: "First test todo item",
+		},
+		{
+			ID:          2,
+			Status:      false,
+			Description: "Second test todo item",
+		},
+	}
+
+	utils.PopulateTestData(fs, filePath, items)
+
+	// TODO: Change this back to spaces once the test arg splitter has been fixed
+	utils.ExecuteCommand(fs, fmt.Sprintf("add %s", "Test_todo_item"))
+
+	stdOut, _ := utils.ExecuteCommand(fs, "list")
+
+	expected := `
+	ID   STATUS               DESCRIPTION
+--------------------------------------------------------------------------------
+0    IN PROGRESS          First test todo item
+2    IN PROGRESS          Second test todo item
+3    IN PROGRESS          Test_todo_item
+	`
+
+	utils.AssertOutput(t, stdOut, expected)
+}
+
 func TestAddMultipleItem(t *testing.T) {
 	fs := afero.NewMemMapFs()
 
@@ -72,6 +111,6 @@ func TestAddItemWithoutDescription(t *testing.T) {
 
 	utils.PopulateTestData(fs, filePath, []cli.Item{})
 
-	_, errOut := utils.ExecuteCommand(fs, fmt.Sprint("add"))
+	_, errOut := utils.ExecuteCommand(fs, "add")
 	assert.Equal(t, "Error: accepts 1 arg(s), received 0\n", errOut.String())
 }
