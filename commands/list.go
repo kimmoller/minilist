@@ -1,7 +1,6 @@
 package commands
 
 import (
-	"fmt"
 	"strings"
 
 	"github.com/kimmoller/minilist/cli"
@@ -25,15 +24,15 @@ func NewListCmd(fs afero.Fs) *cobra.Command {
 				return err
 			}
 
-			fmt.Printf("%-4s %-20s %s\n", "ID", "STATUS", "DESCRIPTION")
-			fmt.Println(strings.Repeat("-", 80))
+			cmd.Printf("%-4s %-20s %s\n", "ID", "STATUS", "DESCRIPTION")
+			cmd.Println(strings.Repeat("-", 80))
 
 			for _, item := range data.Items {
 				if item.Status && !withCompleted {
 					continue
 				}
 				statusText := toStatusText(item.Status)
-				fmt.Printf("%-4d %-20s %s\n", item.ID, statusText, item.Description)
+				cmd.Printf("%-4d %-20s %s\n", item.ID, statusText, item.Description)
 			}
 			return nil
 		},

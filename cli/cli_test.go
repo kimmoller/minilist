@@ -1,10 +1,10 @@
 package cli_test
 
 import (
-	"encoding/json"
 	"testing"
 
 	"github.com/kimmoller/minilist/cli"
+	"github.com/kimmoller/minilist/utils"
 	"github.com/spf13/afero"
 	"github.com/stretchr/testify/assert"
 )
@@ -17,7 +17,7 @@ func TestAddItem(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	err = populateTestData(fs, filePath, []cli.Item{})
+	err = utils.PopulateTestData(fs, filePath, []cli.Item{})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -27,7 +27,7 @@ func TestAddItem(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	data, err := dataFromFile(fs, filePath)
+	data, err := utils.DataFromFile(fs, filePath)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -52,7 +52,7 @@ func TestCompleteItem(t *testing.T) {
 		Status:      false,
 		Description: "Test todo item",
 	}
-	err = populateTestData(fs, filePath, []cli.Item{item})
+	err = utils.PopulateTestData(fs, filePath, []cli.Item{item})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -62,7 +62,7 @@ func TestCompleteItem(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	data, err := dataFromFile(fs, filePath)
+	data, err := utils.DataFromFile(fs, filePath)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -87,12 +87,12 @@ func TestDeleteItem(t *testing.T) {
 		Status:      false,
 		Description: "Test todo item",
 	}
-	err = populateTestData(fs, filePath, []cli.Item{item})
+	err = utils.PopulateTestData(fs, filePath, []cli.Item{item})
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	data, err := dataFromFile(fs, filePath)
+	data, err := utils.DataFromFile(fs, filePath)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -104,7 +104,7 @@ func TestDeleteItem(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	data, err = dataFromFile(fs, filePath)
+	data, err = utils.DataFromFile(fs, filePath)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -125,7 +125,7 @@ func TestReadData(t *testing.T) {
 		Status:      false,
 		Description: "Test todo item",
 	}
-	err = populateTestData(fs, filePath, []cli.Item{item})
+	err = utils.PopulateTestData(fs, filePath, []cli.Item{item})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -140,32 +140,4 @@ func TestReadData(t *testing.T) {
 	assert.Equal(t, 0, item.ID)
 	assert.Equal(t, false, item.Status)
 	assert.Equal(t, "Test todo item", item.Description)
-}
-
-func dataFromFile(fs afero.Fs, filePath string) (*cli.Data, error) {
-	byteData, err := afero.ReadFile(fs, filePath)
-	if err != nil {
-		return nil, err
-	}
-
-	var data cli.Data
-	err = json.Unmarshal(byteData, &data)
-	if err != nil {
-		return nil, err
-	}
-
-	return &data, nil
-}
-
-func populateTestData(fs afero.Fs, filePath string, items []cli.Item) error {
-	testData := cli.Data{
-		Items: items,
-	}
-
-	byteData, err := json.Marshal(testData)
-	if err != nil {
-		return err
-	}
-
-	return afero.WriteFile(fs, filePath, byteData, 0644)
 }
