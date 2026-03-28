@@ -9,7 +9,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// TODO: Add tests for commands and data functions
+// TODO: Add tests for commands
 
 func NewCmd(fs afero.Fs) *cobra.Command {
 	cmd := &cobra.Command{
