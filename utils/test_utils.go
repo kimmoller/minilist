@@ -3,11 +3,14 @@ package utils
 import (
 	"bytes"
 	"encoding/json"
+	"io"
 	"strings"
+	"testing"
 
 	"github.com/kimmoller/minilist/cli"
 	"github.com/kimmoller/minilist/commands"
 	"github.com/spf13/afero"
+	"github.com/stretchr/testify/assert"
 )
 
 func DataFromFile(fs afero.Fs, filePath string) (*cli.Data, error) {
@@ -39,6 +42,7 @@ func PopulateTestData(fs afero.Fs, filePath string, items []cli.Item) error {
 }
 
 func ExecuteCommand(fs afero.Fs, command string) (*bytes.Buffer, *bytes.Buffer) {
+	// FIXME: Currently the split does not correctly handle agruments with spaces, like the description
 	args := strings.Split(command, " ")
 	cmd := commands.NewCmd(fs)
 
@@ -53,4 +57,13 @@ func ExecuteCommand(fs afero.Fs, command string) (*bytes.Buffer, *bytes.Buffer) 
 	cmd.Execute()
 
 	return stdOut, errOut
+}
+
+func AssertOutput(t *testing.T, stdOut *bytes.Buffer, expected string) {
+	out, err := io.ReadAll(stdOut)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	assert.Equal(t, strings.TrimSpace(expected), strings.TrimSpace(string(out)))
 }

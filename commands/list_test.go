@@ -2,14 +2,11 @@ package commands_test
 
 import (
 	"fmt"
-	"io"
-	"strings"
 	"testing"
 
 	"github.com/kimmoller/minilist/cli"
 	"github.com/kimmoller/minilist/utils"
 	"github.com/spf13/afero"
-	"github.com/stretchr/testify/assert"
 )
 
 func TestListItems(t *testing.T) {
@@ -49,12 +46,7 @@ func TestListItems(t *testing.T) {
 2    IN PROGRESS          Third test todo item
 	`
 
-	out, err := io.ReadAll(stdOut)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	assert.Equal(t, strings.TrimSpace(expected), strings.TrimSpace(string(out)))
+	utils.AssertOutput(t, stdOut, expected)
 }
 
 func TestListAllItems(t *testing.T) {
@@ -89,12 +81,7 @@ func TestListAllItems(t *testing.T) {
 1    COMPLETED            Second test todo item
 	`
 
-	out, err := io.ReadAll(stdOut)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	assert.Equal(t, strings.TrimSpace(expected), strings.TrimSpace(string(out)))
+	utils.AssertOutput(t, stdOut, expected)
 }
 
 func TestListNoItems(t *testing.T) {
@@ -114,10 +101,5 @@ func TestListNoItems(t *testing.T) {
 --------------------------------------------------------------------------------
 	`
 
-	out, err := io.ReadAll(stdOut)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	assert.Equal(t, strings.TrimSpace(expected), strings.TrimSpace(string(out)))
+	utils.AssertOutput(t, stdOut, expected)
 }
