@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"path/filepath"
+	"strings"
 
 	"github.com/spf13/afero"
 )
@@ -18,14 +20,24 @@ type Item struct {
 	Description string `json:"description"`
 }
 
+// TODO: Add dynamic mac/windows compatible file paths for config
 func DataFilePath() (string, error) {
 	homeDir, err := os.UserHomeDir()
 	if err != nil {
 		return "", err
 	}
 
-	// TODO: Use an env to allow users to change this path
-	return fmt.Sprintf("%s/.config/minilist/data.json", homeDir), nil
+	xdgConfigHome, found := os.LookupEnv("XDG_CONFIG_HOME")
+	if !found || xdgConfigHome == "" {
+		xdgConfigHome = "~/.config"
+	}
+
+	configPrefix := xdgConfigHome
+	if strings.HasPrefix(xdgConfigHome, "~/") {
+		configPrefix = filepath.Join(homeDir, xdgConfigHome[2:])
+	}
+
+	return fmt.Sprintf("%s/minilist/data.json", configPrefix), nil
 }
 
 func WriteToDataFile(fs afero.Fs, data *Data) error {
