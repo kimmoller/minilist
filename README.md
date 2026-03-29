@@ -2,11 +2,17 @@
 
 Minimalistic todo list
 
+```
+Currently only compatible with Linux systems
+```
+
 Run minilist -h to see available commands. All individual commands have a help function that will print out requirements and available aliases.
 
 ## Data
 
-All data for the minilist application will be stored in a json file located in `~/.config/minilist/data.json`
+All data for the minilist application will by default be stored in a json file located in `~/.config/minilist/data.json`
+
+If another value has been set in `XDG_CONFIG_HOME` that value will be used instead.
 
 ## Commands
 
