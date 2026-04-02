@@ -10,13 +10,21 @@ import (
 	"github.com/spf13/afero"
 )
 
+type Status string
+
+const (
+	StatusTodo       Status = "TODO"
+	StatusInProgress Status = "IN PROGRESS"
+	StatusCompleted  Status = "COMPLETED"
+)
+
 type Data struct {
 	Items []Item `json:"items"`
 }
 
 type Item struct {
 	ID          int    `json:"id"`
-	Status      bool   `json:"status"`
+	Status      Status `json:"status"`
 	Description string `json:"description"`
 }
 
@@ -98,7 +106,7 @@ func AddItem(fs afero.Fs, description string) error {
 	}
 	newItem := Item{
 		ID:          nextId,
-		Status:      false,
+		Status:      StatusTodo,
 		Description: description,
 	}
 
@@ -147,7 +155,7 @@ func CompleteItem(fs afero.Fs, id int) error {
 		return fmt.Errorf("item with ID %d not found", id)
 	}
 
-	data.Items[idToComplete].Status = true
+	data.Items[idToComplete].Status = StatusCompleted
 
 	return WriteToDataFile(fs, data)
 }

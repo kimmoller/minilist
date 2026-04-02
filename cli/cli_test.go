@@ -35,7 +35,7 @@ func TestAddItem(t *testing.T) {
 	assert.Equal(t, 1, len(data.Items))
 	item := data.Items[0]
 	assert.Equal(t, 0, item.ID)
-	assert.Equal(t, false, item.Status)
+	assert.Equal(t, cli.StatusTodo, item.Status)
 	assert.Equal(t, "Test todo item", item.Description)
 }
 
@@ -49,7 +49,7 @@ func TestCompleteItem(t *testing.T) {
 
 	item := cli.Item{
 		ID:          0,
-		Status:      false,
+		Status:      cli.StatusInProgress,
 		Description: "Test todo item",
 	}
 	err = utils.PopulateTestData(fs, filePath, []cli.Item{item})
@@ -70,7 +70,7 @@ func TestCompleteItem(t *testing.T) {
 	assert.Equal(t, 1, len(data.Items))
 	modifiedItem := data.Items[0]
 	assert.Equal(t, 0, modifiedItem.ID)
-	assert.Equal(t, true, modifiedItem.Status)
+	assert.Equal(t, cli.StatusCompleted, modifiedItem.Status)
 	assert.Equal(t, "Test todo item", modifiedItem.Description)
 }
 
@@ -84,7 +84,7 @@ func TestDeleteItem(t *testing.T) {
 
 	item := cli.Item{
 		ID:          0,
-		Status:      false,
+		Status:      cli.StatusInProgress,
 		Description: "Test todo item",
 	}
 	err = utils.PopulateTestData(fs, filePath, []cli.Item{item})
@@ -122,7 +122,7 @@ func TestReadData(t *testing.T) {
 
 	item := cli.Item{
 		ID:          0,
-		Status:      false,
+		Status:      cli.StatusTodo,
 		Description: "Test todo item",
 	}
 	err = utils.PopulateTestData(fs, filePath, []cli.Item{item})
@@ -138,6 +138,6 @@ func TestReadData(t *testing.T) {
 	assert.Equal(t, 1, len(data.Items))
 	item = data.Items[0]
 	assert.Equal(t, 0, item.ID)
-	assert.Equal(t, false, item.Status)
+	assert.Equal(t, cli.StatusTodo, item.Status)
 	assert.Equal(t, "Test todo item", item.Description)
 }

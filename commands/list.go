@@ -28,11 +28,10 @@ func NewListCmd(fs afero.Fs) *cobra.Command {
 			cmd.Println(strings.Repeat("-", 80))
 
 			for _, item := range data.Items {
-				if item.Status && !withCompleted {
+				if item.Status == cli.StatusCompleted && !withCompleted {
 					continue
 				}
-				statusText := toStatusText(item.Status)
-				cmd.Printf("%-4d %-20s %s\n", item.ID, statusText, item.Description)
+				cmd.Printf("%-4d %-20s %s\n", item.ID, item.Status, item.Description)
 			}
 			return nil
 		},
@@ -40,12 +39,4 @@ func NewListCmd(fs afero.Fs) *cobra.Command {
 	cmd.Flags().BoolVarP(&withCompleted, withCompletedFlag, "a", false, "(optional) Print completed items")
 
 	return cmd
-}
-
-func toStatusText(status bool) string {
-	if status {
-		return "COMPLETED"
-	}
-
-	return "IN PROGRESS"
 }

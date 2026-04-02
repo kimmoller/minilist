@@ -20,12 +20,12 @@ func TestCompleteItem(t *testing.T) {
 	items := []cli.Item{
 		{
 			ID:          0,
-			Status:      false,
+			Status:      cli.StatusTodo,
 			Description: "First test todo item",
 		},
 		{
 			ID:          1,
-			Status:      false,
+			Status:      cli.StatusTodo,
 			Description: "Second test todo item",
 		},
 	}
@@ -39,7 +39,7 @@ func TestCompleteItem(t *testing.T) {
 	expected := `
 	ID   STATUS               DESCRIPTION
 --------------------------------------------------------------------------------
-0    IN PROGRESS          First test todo item
+0    TODO                 First test todo item
 1    COMPLETED            Second test todo item
 	`
 
@@ -57,12 +57,12 @@ func TestCompleteCompletedItem(t *testing.T) {
 	items := []cli.Item{
 		{
 			ID:          0,
-			Status:      false,
+			Status:      cli.StatusInProgress,
 			Description: "First test todo item",
 		},
 		{
 			ID:          1,
-			Status:      true,
+			Status:      cli.StatusCompleted,
 			Description: "Second test todo item",
 		},
 	}
