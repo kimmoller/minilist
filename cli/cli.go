@@ -160,6 +160,28 @@ func CompleteItem(fs afero.Fs, id int) error {
 	return WriteToDataFile(fs, data)
 }
 
+func SetToInProgress(fs afero.Fs, id int) error {
+	data, err := ReadData(fs)
+	if err != nil {
+		return err
+	}
+
+	idToUpdate := -1
+	for i, item := range data.Items {
+		if item.ID == id {
+			idToUpdate = i
+		}
+	}
+
+	if idToUpdate == -1 {
+		return fmt.Errorf("item with ID %d not found", id)
+	}
+
+	data.Items[idToUpdate].Status = StatusInProgress
+
+	return WriteToDataFile(fs, data)
+}
+
 func CreateDirIfMissing(fs afero.Fs) error {
 	dirPath, err := DataDirPath()
 	if err != nil {

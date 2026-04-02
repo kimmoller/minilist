@@ -16,6 +16,7 @@ func NewCmd(fs afero.Fs) *cobra.Command {
 	cmd.AddCommand(NewDeleteCmd(fs))
 	cmd.AddCommand(NewListCmd(fs))
 	cmd.AddCommand(NewCompleteCmd(fs))
+	cmd.AddCommand(NewStartCmd(fs))
 
 	return cmd
 }
