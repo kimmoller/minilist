@@ -2,11 +2,11 @@
 
 Minimalistic todo list
 
-```
-Currently only compatible with Linux systems
-```
-
 Run minilist -h to see available commands. All individual commands have a help function that will print out requirements and available aliases.
+
+### Compatibility
+
+So far the application has only been tested on a Linux system but assuming that the ~/.config directory exists or `XDG_CONFIG_HOME` is set to an existing path, everything should work as expected.
 
 ## Data
 
@@ -36,6 +36,14 @@ Add a new item
 
 ```
 minilist add "${your_description_here}"
+```
+
+### Start
+
+Set an items status to in progress
+
+```
+minilist start "${your_description_here}"
 ```
 
 ### Complete
