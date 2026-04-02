@@ -20,8 +20,7 @@ type Item struct {
 	Description string `json:"description"`
 }
 
-// TODO: Add dynamic mac/windows compatible file paths for config
-func DataFilePath() (string, error) {
+func DataDirPath() (string, error) {
 	homeDir, err := os.UserHomeDir()
 	if err != nil {
 		return "", err
@@ -37,7 +36,17 @@ func DataFilePath() (string, error) {
 		configPrefix = filepath.Join(homeDir, xdgConfigHome[2:])
 	}
 
-	return fmt.Sprintf("%s/minilist/data.json", configPrefix), nil
+	return fmt.Sprintf("%s/minilist", configPrefix), nil
+}
+
+// TODO: Add dynamic mac/windows compatible file paths for config
+func DataFilePath() (string, error) {
+	dirPath, err := DataDirPath()
+	if err != nil {
+		return "", err
+	}
+
+	return fmt.Sprintf("%s/data.json", dirPath), nil
 }
 
 func WriteToDataFile(fs afero.Fs, data *Data) error {
@@ -143,7 +152,27 @@ func CompleteItem(fs afero.Fs, id int) error {
 	return WriteToDataFile(fs, data)
 }
 
+func CreateDirIfMissing(fs afero.Fs) error {
+	dirPath, err := DataDirPath()
+	if err != nil {
+		return err
+	}
+
+	exists, err := afero.DirExists(fs, dirPath)
+	if err != nil {
+		return err
+	}
+
+	if !exists {
+		return fs.Mkdir(dirPath, 0744)
+	}
+
+	return nil
+}
+
 func EnsureDataFileExists(fs afero.Fs) error {
+	err := CreateDirIfMissing(fs)
+
 	filePath, err := DataFilePath()
 	if err != nil {
 		return err
