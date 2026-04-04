@@ -16,6 +16,18 @@ If another value has been set in `XDG_CONFIG_HOME` that value will be used inste
 
 ## Commands
 
+### Migrate
+
+Migrate old v0.1.1 data format into the new data format introduced in v.0.2.0.
+
+This command will be removed in the future as it is only necessary when upgrading from v0.1.x to v.0.2.0. There will be a release note when the command will be removed to notify users that they need to upgrade to a version prior to that to avoid having to migrate data by hand.
+
+Running the command is a no-op if you have already migrated to the new data format.
+
+```
+minilist migrate
+```
+
 ### List
 
 List all existing in progress items

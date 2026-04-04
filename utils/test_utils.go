@@ -41,6 +41,19 @@ func PopulateTestData(fs afero.Fs, filePath string, items []cli.Item) error {
 	return afero.WriteFile(fs, filePath, byteData, 0644)
 }
 
+func PopulateTestDataForMigration(fs afero.Fs, filePath string, items []cli.OldItem) error {
+	testData := cli.OldData{
+		Items: items,
+	}
+
+	byteData, err := json.Marshal(testData)
+	if err != nil {
+		return err
+	}
+
+	return afero.WriteFile(fs, filePath, byteData, 0644)
+}
+
 func ExecuteCommand(fs afero.Fs, command string) (*bytes.Buffer, *bytes.Buffer) {
 	// FIXME: Currently the split does not correctly handle agruments with spaces, like the description
 	args := strings.Split(command, " ")

@@ -141,3 +141,47 @@ func TestReadData(t *testing.T) {
 	assert.Equal(t, cli.StatusTodo, item.Status)
 	assert.Equal(t, "Test todo item", item.Description)
 }
+
+func TestMigrateData(t *testing.T) {
+	fs := afero.NewMemMapFs()
+
+	filePath, err := cli.DataFilePath()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	oldItems := []cli.OldItem{
+		cli.OldItem{
+			ID:          0,
+			Status:      false,
+			Description: "Old item with false status",
+		},
+		cli.OldItem{
+			ID:          1,
+			Status:      true,
+			Description: "Old item with true status",
+		},
+	}
+
+	err = utils.PopulateTestDataForMigration(fs, filePath, oldItems)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	err = cli.Migrate(fs)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	data, err := cli.ReadData(fs)
+	assert.Equal(t, 2, len(data.Items))
+	for _, item := range data.Items {
+		if item.ID == 0 {
+			assert.Equal(t, cli.StatusInProgress, item.Status)
+			assert.Equal(t, "Old item with false status", item.Description)
+		} else {
+			assert.Equal(t, cli.StatusCompleted, item.Status)
+			assert.Equal(t, "Old item with true status", item.Description)
+		}
+	}
+}
