@@ -65,8 +65,8 @@ func TestAddItemWithGapInIds(t *testing.T) {
 	expected := `
 	ID   STATUS               DESCRIPTION
 --------------------------------------------------------------------------------
-0    TODO                 First test todo item
 2    IN PROGRESS          Second test todo item
+0    TODO                 First test todo item
 3    TODO                 Test_todo_item
 	`
 
