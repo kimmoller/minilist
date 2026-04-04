@@ -41,6 +41,7 @@ func PopulateTestData(fs afero.Fs, filePath string, items []cli.Item) error {
 	return afero.WriteFile(fs, filePath, byteData, 0644)
 }
 
+// TODO_MIGRATION: Remove in a future version
 func PopulateTestDataForMigration(fs afero.Fs, filePath string, items []cli.OldItem) error {
 	testData := cli.OldData{
 		Items: items,
