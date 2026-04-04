@@ -20,17 +20,17 @@ func TestListItems(t *testing.T) {
 	items := []cli.Item{
 		{
 			ID:          0,
-			Status:      true,
+			Status:      cli.StatusCompleted,
 			Description: "Completed test todo item",
 		},
 		{
 			ID:          1,
-			Status:      false,
+			Status:      cli.StatusTodo,
 			Description: "Second test todo item",
 		},
 		{
 			ID:          2,
-			Status:      false,
+			Status:      cli.StatusInProgress,
 			Description: "Third test todo item",
 		},
 	}
@@ -42,8 +42,8 @@ func TestListItems(t *testing.T) {
 	expected := `
 	ID   STATUS               DESCRIPTION
 --------------------------------------------------------------------------------
-1    IN PROGRESS          Second test todo item
 2    IN PROGRESS          Third test todo item
+1    TODO                 Second test todo item
 	`
 
 	utils.AssertOutput(t, stdOut, expected)
@@ -60,12 +60,12 @@ func TestListAllItems(t *testing.T) {
 	items := []cli.Item{
 		{
 			ID:          0,
-			Status:      false,
+			Status:      cli.StatusInProgress,
 			Description: "First test todo item",
 		},
 		{
 			ID:          1,
-			Status:      true,
+			Status:      cli.StatusCompleted,
 			Description: "Second test todo item",
 		},
 	}
@@ -80,6 +80,67 @@ func TestListAllItems(t *testing.T) {
 0    IN PROGRESS          First test todo item
 1    COMPLETED            Second test todo item
 	`
+
+	utils.AssertOutput(t, stdOut, expected)
+}
+
+func TestListItemsInCorrectOrder(t *testing.T) {
+	fs := afero.NewMemMapFs()
+
+	filePath, err := cli.DataFilePath()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	items := []cli.Item{
+		{
+			ID:          0,
+			Status:      cli.StatusInProgress,
+			Description: "Should be second",
+		},
+		{
+			ID:          1,
+			Status:      cli.StatusCompleted,
+			Description: "Should be last",
+		},
+		{
+			ID:          2,
+			Status:      cli.StatusTodo,
+			Description: "Should be third",
+		},
+		{
+			ID:          3,
+			Status:      cli.StatusTodo,
+			Description: "Should be first",
+			Priority:    true,
+		},
+		{
+			ID:          4,
+			Status:      cli.StatusCompleted,
+			Description: "Should be fourth",
+			Priority:    true,
+		},
+	}
+
+	utils.PopulateTestData(fs, filePath, items)
+
+	stdOut, _ := utils.ExecuteCommand(fs, fmt.Sprint("list --all"))
+
+	firstDescription := "3    TODO                 Should be first"
+	firstBold := fmt.Sprintf("%s", "\033[1m"+firstDescription+"\033[0m")
+
+	fourthDescription := "4    COMPLETED            Should be fourth"
+	fourthBold := fmt.Sprintf("%s", "\033[1m"+fourthDescription+"\033[0m")
+
+	expected := fmt.Sprintf(`
+	ID   STATUS               DESCRIPTION
+--------------------------------------------------------------------------------
+%s
+0    IN PROGRESS          Should be second
+2    TODO                 Should be third
+%s
+1    COMPLETED            Should be last
+	`, firstBold, fourthBold)
 
 	utils.AssertOutput(t, stdOut, expected)
 }

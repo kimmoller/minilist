@@ -1,6 +1,8 @@
 package commands
 
 import (
+	"fmt"
+	"slices"
 	"strings"
 
 	"github.com/kimmoller/minilist/cli"
@@ -27,12 +29,18 @@ func NewListCmd(fs afero.Fs) *cobra.Command {
 			cmd.Printf("%-4s %-20s %s\n", "ID", "STATUS", "DESCRIPTION")
 			cmd.Println(strings.Repeat("-", 80))
 
-			for _, item := range data.Items {
-				if item.Status && !withCompleted {
+			items := sortItems(data.Items)
+
+			for _, item := range items {
+				if item.Status == cli.StatusCompleted && !withCompleted {
 					continue
 				}
-				statusText := toStatusText(item.Status)
-				cmd.Printf("%-4d %-20s %s\n", item.ID, statusText, item.Description)
+				text := fmt.Sprintf("%-4d %-20s %s", item.ID, item.Status, item.Description)
+				if item.Priority {
+					cmd.Printf("%s\n", "\033[1m"+text+"\033[0m")
+				} else {
+					cmd.Printf("%s\n", text)
+				}
 			}
 			return nil
 		},
@@ -42,10 +50,37 @@ func NewListCmd(fs afero.Fs) *cobra.Command {
 	return cmd
 }
 
-func toStatusText(status bool) string {
-	if status {
-		return "COMPLETED"
-	}
+// Sort items into a priority order: PRIORITY > IN_PROGRESS > TODO > COMPLETED
+func sortItems(items []cli.Item) []cli.Item {
+	itemsCopy := slices.Clone(items)
 
-	return "IN PROGRESS"
+	slices.SortFunc(itemsCopy, func(a cli.Item, b cli.Item) int {
+		// Sort everything before completed items
+		if a.Status == cli.StatusCompleted && b.Status != cli.StatusCompleted {
+			return 1
+		}
+		if b.Status == cli.StatusCompleted && a.Status != cli.StatusCompleted {
+			return -1
+		}
+
+		// Sort prioritized items over normal items
+		if a.Priority && !b.Priority {
+			return -1
+		}
+		if b.Priority && !a.Priority {
+			return 1
+		}
+
+		// Sort in_progress before todo items
+		if a.Status == cli.StatusInProgress && b.Status == cli.StatusTodo {
+			return -1
+		}
+		if b.Status == cli.StatusInProgress && a.Status == cli.StatusTodo {
+			return 1
+		}
+
+		return 0
+	})
+
+	return itemsCopy
 }

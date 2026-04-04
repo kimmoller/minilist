@@ -10,14 +10,35 @@ import (
 	"github.com/spf13/afero"
 )
 
+type Status string
+
+const (
+	StatusTodo       Status = "TODO"
+	StatusInProgress Status = "IN PROGRESS"
+	StatusCompleted  Status = "COMPLETED"
+)
+
+// TODO_MIGRATION: Remove in a future version
+type OldData struct {
+	Items []OldItem `json:"items"`
+}
+
+// TODO_MIGRATION: Remove in a future version
+type OldItem struct {
+	ID          int    `json:"id"`
+	Status      bool   `json:"status"`
+	Description string `json:"description"`
+}
+
 type Data struct {
 	Items []Item `json:"items"`
 }
 
 type Item struct {
 	ID          int    `json:"id"`
-	Status      bool   `json:"status"`
+	Status      Status `json:"status"`
 	Description string `json:"description"`
+	Priority    bool   `json:"priority"`
 }
 
 func DataDirPath() (string, error) {
@@ -98,7 +119,7 @@ func AddItem(fs afero.Fs, description string) error {
 	}
 	newItem := Item{
 		ID:          nextId,
-		Status:      false,
+		Status:      StatusTodo,
 		Description: description,
 	}
 
@@ -113,18 +134,12 @@ func DeleteItem(fs afero.Fs, id int) error {
 		return err
 	}
 
-	idToDelete := -1
-	for i, item := range data.Items {
-		if item.ID == id {
-			idToDelete = i
-		}
+	index, err := itemIndex(data.Items, id)
+	if err != nil {
+		return err
 	}
 
-	if idToDelete == -1 {
-		return fmt.Errorf("item with ID %d not found", id)
-	}
-
-	newData := append(data.Items[:idToDelete], data.Items[idToDelete+1:]...)
+	newData := append(data.Items[:index], data.Items[index+1:]...)
 	data.Items = newData
 
 	return WriteToDataFile(fs, data)
@@ -136,20 +151,92 @@ func CompleteItem(fs afero.Fs, id int) error {
 		return err
 	}
 
-	idToComplete := -1
-	for i, item := range data.Items {
-		if item.ID == id {
-			idToComplete = i
-		}
+	index, err := itemIndex(data.Items, id)
+	if err != nil {
+		return err
 	}
 
-	if idToComplete == -1 {
-		return fmt.Errorf("item with ID %d not found", id)
-	}
-
-	data.Items[idToComplete].Status = true
+	data.Items[index].Status = StatusCompleted
 
 	return WriteToDataFile(fs, data)
+}
+
+func SetToInProgress(fs afero.Fs, id int) error {
+	data, err := ReadData(fs)
+	if err != nil {
+		return err
+	}
+
+	index, err := itemIndex(data.Items, id)
+	if err != nil {
+		return err
+	}
+
+	data.Items[index].Status = StatusInProgress
+
+	return WriteToDataFile(fs, data)
+}
+
+func TogglePriority(fs afero.Fs, id int) error {
+	data, err := ReadData(fs)
+	if err != nil {
+		return err
+	}
+
+	index, err := itemIndex(data.Items, id)
+	if err != nil {
+		return err
+	}
+
+	data.Items[index].Priority = !data.Items[index].Priority
+
+	return WriteToDataFile(fs, data)
+}
+
+// TODO_MIGRATION: Remove in a future version
+func Migrate(fs afero.Fs) error {
+	_, err := ReadData(fs)
+	if err == nil {
+		return fmt.Errorf("Data already in the new format, nothing to migrate")
+	}
+
+	filePath, err := DataFilePath()
+	if err != nil {
+		return err
+	}
+
+	byteData, err := afero.ReadFile(fs, filePath)
+	if err != nil {
+		return err
+	}
+
+	var data OldData
+	err = json.Unmarshal(byteData, &data)
+	if err != nil {
+		return err
+	}
+
+	migratedData := Data{
+		Items: []Item{},
+	}
+	for i := 0; i < len(data.Items); i++ {
+		oldItem := data.Items[i]
+		status := oldItem.Status
+		var newStatus Status
+		if status {
+			newStatus = StatusCompleted
+		} else {
+			newStatus = StatusInProgress
+		}
+		newItem := Item{
+			ID:          oldItem.ID,
+			Status:      newStatus,
+			Description: oldItem.Description,
+		}
+		migratedData.Items = append(migratedData.Items, newItem)
+	}
+
+	return WriteToDataFile(fs, &migratedData)
 }
 
 func CreateDirIfMissing(fs afero.Fs) error {
@@ -199,4 +286,19 @@ func EnsureDataFileExists(fs afero.Fs) error {
 	}
 
 	return nil
+}
+
+func itemIndex(items []Item, id int) (int, error) {
+	itemIndex := -1
+	for i, item := range items {
+		if item.ID == id {
+			itemIndex = i
+		}
+	}
+
+	if itemIndex == -1 {
+		return -1, fmt.Errorf("item with ID %d not found", id)
+	}
+
+	return itemIndex, nil
 }

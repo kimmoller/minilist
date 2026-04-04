@@ -35,7 +35,7 @@ func TestAddItem(t *testing.T) {
 	assert.Equal(t, 1, len(data.Items))
 	item := data.Items[0]
 	assert.Equal(t, 0, item.ID)
-	assert.Equal(t, false, item.Status)
+	assert.Equal(t, cli.StatusTodo, item.Status)
 	assert.Equal(t, "Test todo item", item.Description)
 }
 
@@ -49,7 +49,7 @@ func TestCompleteItem(t *testing.T) {
 
 	item := cli.Item{
 		ID:          0,
-		Status:      false,
+		Status:      cli.StatusInProgress,
 		Description: "Test todo item",
 	}
 	err = utils.PopulateTestData(fs, filePath, []cli.Item{item})
@@ -70,7 +70,7 @@ func TestCompleteItem(t *testing.T) {
 	assert.Equal(t, 1, len(data.Items))
 	modifiedItem := data.Items[0]
 	assert.Equal(t, 0, modifiedItem.ID)
-	assert.Equal(t, true, modifiedItem.Status)
+	assert.Equal(t, cli.StatusCompleted, modifiedItem.Status)
 	assert.Equal(t, "Test todo item", modifiedItem.Description)
 }
 
@@ -84,7 +84,7 @@ func TestDeleteItem(t *testing.T) {
 
 	item := cli.Item{
 		ID:          0,
-		Status:      false,
+		Status:      cli.StatusInProgress,
 		Description: "Test todo item",
 	}
 	err = utils.PopulateTestData(fs, filePath, []cli.Item{item})
@@ -122,7 +122,7 @@ func TestReadData(t *testing.T) {
 
 	item := cli.Item{
 		ID:          0,
-		Status:      false,
+		Status:      cli.StatusTodo,
 		Description: "Test todo item",
 	}
 	err = utils.PopulateTestData(fs, filePath, []cli.Item{item})
@@ -138,6 +138,97 @@ func TestReadData(t *testing.T) {
 	assert.Equal(t, 1, len(data.Items))
 	item = data.Items[0]
 	assert.Equal(t, 0, item.ID)
-	assert.Equal(t, false, item.Status)
+	assert.Equal(t, cli.StatusTodo, item.Status)
 	assert.Equal(t, "Test todo item", item.Description)
+}
+
+func TestToggleItemPriority(t *testing.T) {
+	fs := afero.NewMemMapFs()
+
+	filePath, err := cli.DataFilePath()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	items := []cli.Item{
+		cli.Item{
+			ID:          0,
+			Status:      cli.StatusTodo,
+			Description: "Normal todo item",
+			Priority:    false,
+		},
+		cli.Item{
+			ID:          1,
+			Status:      cli.StatusTodo,
+			Description: "Prioritized todo item",
+			Priority:    true,
+		},
+	}
+	err = utils.PopulateTestData(fs, filePath, items)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	err = cli.TogglePriority(fs, 0)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	err = cli.TogglePriority(fs, 1)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	data, err := cli.ReadData(fs)
+	for _, item := range data.Items {
+		if item.ID == 0 {
+			assert.True(t, item.Priority)
+		} else {
+			assert.False(t, item.Priority)
+		}
+	}
+}
+
+func TestMigrateData(t *testing.T) {
+	fs := afero.NewMemMapFs()
+
+	filePath, err := cli.DataFilePath()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	oldItems := []cli.OldItem{
+		cli.OldItem{
+			ID:          0,
+			Status:      false,
+			Description: "Old item with false status",
+		},
+		cli.OldItem{
+			ID:          1,
+			Status:      true,
+			Description: "Old item with true status",
+		},
+	}
+
+	err = utils.PopulateTestDataForMigration(fs, filePath, oldItems)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	err = cli.Migrate(fs)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	data, err := cli.ReadData(fs)
+	assert.Equal(t, 2, len(data.Items))
+	for _, item := range data.Items {
+		if item.ID == 0 {
+			assert.Equal(t, cli.StatusInProgress, item.Status)
+			assert.Equal(t, "Old item with false status", item.Description)
+		} else {
+			assert.Equal(t, cli.StatusCompleted, item.Status)
+			assert.Equal(t, "Old item with true status", item.Description)
+		}
+	}
 }

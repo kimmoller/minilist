@@ -20,12 +20,12 @@ func TestDeleteItem(t *testing.T) {
 	items := []cli.Item{
 		{
 			ID:          0,
-			Status:      false,
+			Status:      cli.StatusTodo,
 			Description: "First test todo item",
 		},
 		{
 			ID:          1,
-			Status:      false,
+			Status:      cli.StatusTodo,
 			Description: "Second test todo item",
 		},
 	}
@@ -39,7 +39,7 @@ func TestDeleteItem(t *testing.T) {
 	expected := `
 	ID   STATUS               DESCRIPTION
 --------------------------------------------------------------------------------
-0    IN PROGRESS          First test todo item
+0    TODO                 First test todo item
 	`
 
 	utils.AssertOutput(t, stdOut, expected)

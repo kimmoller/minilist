@@ -9,7 +9,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestCompleteItem(t *testing.T) {
+func TestStartItem(t *testing.T) {
 	fs := afero.NewMemMapFs()
 
 	filePath, err := cli.DataFilePath()
@@ -32,21 +32,21 @@ func TestCompleteItem(t *testing.T) {
 
 	utils.PopulateTestData(fs, filePath, items)
 
-	utils.ExecuteCommand(fs, "complete 1")
+	utils.ExecuteCommand(fs, "start 1")
 
 	stdOut, _ := utils.ExecuteCommand(fs, "list --all")
 
 	expected := `
 	ID   STATUS               DESCRIPTION
 --------------------------------------------------------------------------------
+1    IN PROGRESS          Second test todo item
 0    TODO                 First test todo item
-1    COMPLETED            Second test todo item
 	`
 
 	utils.AssertOutput(t, stdOut, expected)
 }
 
-func TestCompleteCompletedItem(t *testing.T) {
+func TestStartInProgressItem(t *testing.T) {
 	fs := afero.NewMemMapFs()
 
 	filePath, err := cli.DataFilePath()
@@ -62,14 +62,14 @@ func TestCompleteCompletedItem(t *testing.T) {
 		},
 		{
 			ID:          1,
-			Status:      cli.StatusCompleted,
+			Status:      cli.StatusInProgress,
 			Description: "Second test todo item",
 		},
 	}
 
 	utils.PopulateTestData(fs, filePath, items)
 
-	utils.ExecuteCommand(fs, "complete 1")
+	utils.ExecuteCommand(fs, "start 1")
 
 	stdOut, _ := utils.ExecuteCommand(fs, "list --all")
 
@@ -77,13 +77,13 @@ func TestCompleteCompletedItem(t *testing.T) {
 	ID   STATUS               DESCRIPTION
 --------------------------------------------------------------------------------
 0    IN PROGRESS          First test todo item
-1    COMPLETED            Second test todo item
+1    IN PROGRESS          Second test todo item
 	`
 
 	utils.AssertOutput(t, stdOut, expected)
 }
 
-func TestCompleteNonExistingItem(t *testing.T) {
+func TestStartNonExistingItem(t *testing.T) {
 	fs := afero.NewMemMapFs()
 
 	filePath, err := cli.DataFilePath()
@@ -93,11 +93,11 @@ func TestCompleteNonExistingItem(t *testing.T) {
 
 	utils.PopulateTestData(fs, filePath, []cli.Item{})
 
-	_, errOut := utils.ExecuteCommand(fs, "complete 0")
+	_, errOut := utils.ExecuteCommand(fs, "start 0")
 	assert.Equal(t, "Error: item with ID 0 not found\n", errOut.String())
 }
 
-func TestCompleteItemWithoutArgs(t *testing.T) {
+func TestStartItemWithoutArgs(t *testing.T) {
 	fs := afero.NewMemMapFs()
 
 	filePath, err := cli.DataFilePath()
@@ -107,6 +107,6 @@ func TestCompleteItemWithoutArgs(t *testing.T) {
 
 	utils.PopulateTestData(fs, filePath, []cli.Item{})
 
-	_, errOut := utils.ExecuteCommand(fs, "complete")
+	_, errOut := utils.ExecuteCommand(fs, "start")
 	assert.Equal(t, "Error: accepts 1 arg(s), received 0\n", errOut.String())
 }

@@ -28,7 +28,7 @@ func TestAddItem(t *testing.T) {
 	expected := `
 	ID   STATUS               DESCRIPTION
 --------------------------------------------------------------------------------
-0    IN PROGRESS          Test_todo_item
+0    TODO                 Test_todo_item
 	`
 
 	utils.AssertOutput(t, stdOut, expected)
@@ -45,12 +45,12 @@ func TestAddItemWithGapInIds(t *testing.T) {
 	items := []cli.Item{
 		{
 			ID:          0,
-			Status:      false,
+			Status:      cli.StatusTodo,
 			Description: "First test todo item",
 		},
 		{
 			ID:          2,
-			Status:      false,
+			Status:      cli.StatusInProgress,
 			Description: "Second test todo item",
 		},
 	}
@@ -65,9 +65,9 @@ func TestAddItemWithGapInIds(t *testing.T) {
 	expected := `
 	ID   STATUS               DESCRIPTION
 --------------------------------------------------------------------------------
-0    IN PROGRESS          First test todo item
 2    IN PROGRESS          Second test todo item
-3    IN PROGRESS          Test_todo_item
+0    TODO                 First test todo item
+3    TODO                 Test_todo_item
 	`
 
 	utils.AssertOutput(t, stdOut, expected)
@@ -93,9 +93,9 @@ func TestAddMultipleItem(t *testing.T) {
 	expected := `
 	ID   STATUS               DESCRIPTION
 --------------------------------------------------------------------------------
-0    IN PROGRESS          Test_todo_item
-1    IN PROGRESS          Test_todo_item_2
-2    IN PROGRESS          Test_todo_item_3
+0    TODO                 Test_todo_item
+1    TODO                 Test_todo_item_2
+2    TODO                 Test_todo_item_3
 	`
 
 	utils.AssertOutput(t, stdOut, expected)
