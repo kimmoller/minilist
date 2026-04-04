@@ -38,6 +38,7 @@ type Item struct {
 	ID          int    `json:"id"`
 	Status      Status `json:"status"`
 	Description string `json:"description"`
+	Priority    bool   `json:"priority"`
 }
 
 func DataDirPath() (string, error) {
@@ -133,18 +134,12 @@ func DeleteItem(fs afero.Fs, id int) error {
 		return err
 	}
 
-	idToDelete := -1
-	for i, item := range data.Items {
-		if item.ID == id {
-			idToDelete = i
-		}
+	index, err := itemIndex(data.Items, id)
+	if err != nil {
+		return err
 	}
 
-	if idToDelete == -1 {
-		return fmt.Errorf("item with ID %d not found", id)
-	}
-
-	newData := append(data.Items[:idToDelete], data.Items[idToDelete+1:]...)
+	newData := append(data.Items[:index], data.Items[index+1:]...)
 	data.Items = newData
 
 	return WriteToDataFile(fs, data)
@@ -156,18 +151,12 @@ func CompleteItem(fs afero.Fs, id int) error {
 		return err
 	}
 
-	idToComplete := -1
-	for i, item := range data.Items {
-		if item.ID == id {
-			idToComplete = i
-		}
+	index, err := itemIndex(data.Items, id)
+	if err != nil {
+		return err
 	}
 
-	if idToComplete == -1 {
-		return fmt.Errorf("item with ID %d not found", id)
-	}
-
-	data.Items[idToComplete].Status = StatusCompleted
+	data.Items[index].Status = StatusCompleted
 
 	return WriteToDataFile(fs, data)
 }
@@ -178,18 +167,28 @@ func SetToInProgress(fs afero.Fs, id int) error {
 		return err
 	}
 
-	idToUpdate := -1
-	for i, item := range data.Items {
-		if item.ID == id {
-			idToUpdate = i
-		}
+	index, err := itemIndex(data.Items, id)
+	if err != nil {
+		return err
 	}
 
-	if idToUpdate == -1 {
-		return fmt.Errorf("item with ID %d not found", id)
+	data.Items[index].Status = StatusInProgress
+
+	return WriteToDataFile(fs, data)
+}
+
+func TogglePriority(fs afero.Fs, id int) error {
+	data, err := ReadData(fs)
+	if err != nil {
+		return err
 	}
 
-	data.Items[idToUpdate].Status = StatusInProgress
+	index, err := itemIndex(data.Items, id)
+	if err != nil {
+		return err
+	}
+
+	data.Items[index].Priority = !data.Items[index].Priority
 
 	return WriteToDataFile(fs, data)
 }
@@ -287,4 +286,19 @@ func EnsureDataFileExists(fs afero.Fs) error {
 	}
 
 	return nil
+}
+
+func itemIndex(items []Item, id int) (int, error) {
+	itemIndex := -1
+	for i, item := range items {
+		if item.ID == id {
+			itemIndex = i
+		}
+	}
+
+	if itemIndex == -1 {
+		return -1, fmt.Errorf("item with ID %d not found", id)
+	}
+
+	return itemIndex, nil
 }

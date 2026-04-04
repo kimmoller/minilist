@@ -142,6 +142,53 @@ func TestReadData(t *testing.T) {
 	assert.Equal(t, "Test todo item", item.Description)
 }
 
+func TestToggleItemPriority(t *testing.T) {
+	fs := afero.NewMemMapFs()
+
+	filePath, err := cli.DataFilePath()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	items := []cli.Item{
+		cli.Item{
+			ID:          0,
+			Status:      cli.StatusTodo,
+			Description: "Normal todo item",
+			Priority:    false,
+		},
+		cli.Item{
+			ID:          1,
+			Status:      cli.StatusTodo,
+			Description: "Prioritized todo item",
+			Priority:    true,
+		},
+	}
+	err = utils.PopulateTestData(fs, filePath, items)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	err = cli.TogglePriority(fs, 0)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	err = cli.TogglePriority(fs, 1)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	data, err := cli.ReadData(fs)
+	for _, item := range data.Items {
+		if item.ID == 0 {
+			assert.True(t, item.Priority)
+		} else {
+			assert.False(t, item.Priority)
+		}
+	}
+}
+
 func TestMigrateData(t *testing.T) {
 	fs := afero.NewMemMapFs()
 

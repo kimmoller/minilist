@@ -1,6 +1,7 @@
 package commands
 
 import (
+	"fmt"
 	"slices"
 	"strings"
 
@@ -34,7 +35,12 @@ func NewListCmd(fs afero.Fs) *cobra.Command {
 				if item.Status == cli.StatusCompleted && !withCompleted {
 					continue
 				}
-				cmd.Printf("%-4d %-20s %s\n", item.ID, item.Status, item.Description)
+				text := fmt.Sprintf("%-4d %-20s %s", item.ID, item.Status, item.Description)
+				if item.Priority {
+					cmd.Printf("%s\n", "\033[1m"+text+"\033[0m")
+				} else {
+					cmd.Printf("%s\n", text)
+				}
 			}
 			return nil
 		},
@@ -44,23 +50,35 @@ func NewListCmd(fs afero.Fs) *cobra.Command {
 	return cmd
 }
 
-// Sort items into a priority order: IN_PROGRESS > TODO > COMPLETED
+// Sort items into a priority order: PRIORITY > IN_PROGRESS > TODO > COMPLETED
 func sortItems(items []cli.Item) []cli.Item {
 	itemsCopy := slices.Clone(items)
 
 	slices.SortFunc(itemsCopy, func(a cli.Item, b cli.Item) int {
-		if a.Status == cli.StatusInProgress && (b.Status == cli.StatusTodo || b.Status == cli.StatusCompleted) {
-			return -1
-		}
-		if b.Status == cli.StatusInProgress && (a.Status == cli.StatusTodo || a.Status == cli.StatusCompleted) {
+		// Sort everything before completed items
+		if a.Status == cli.StatusCompleted && b.Status != cli.StatusCompleted {
 			return 1
 		}
-		if a.Status == cli.StatusTodo && b.Status == cli.StatusCompleted {
+		if b.Status == cli.StatusCompleted && a.Status != cli.StatusCompleted {
 			return -1
 		}
-		if b.Status == cli.StatusTodo && a.Status == cli.StatusCompleted {
+
+		// Sort prioritized items over normal items
+		if a.Priority && !b.Priority {
+			return -1
+		}
+		if b.Priority && !a.Priority {
 			return 1
 		}
+
+		// Sort in_progress before todo items
+		if a.Status == cli.StatusInProgress && b.Status == cli.StatusTodo {
+			return -1
+		}
+		if b.Status == cli.StatusInProgress && a.Status == cli.StatusTodo {
+			return 1
+		}
+
 		return 0
 	})
 

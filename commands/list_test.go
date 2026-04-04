@@ -96,17 +96,29 @@ func TestListItemsInCorrectOrder(t *testing.T) {
 		{
 			ID:          0,
 			Status:      cli.StatusInProgress,
-			Description: "First test todo item",
+			Description: "Should be second",
 		},
 		{
 			ID:          1,
 			Status:      cli.StatusCompleted,
-			Description: "Second test todo item",
+			Description: "Should be last",
 		},
 		{
 			ID:          2,
 			Status:      cli.StatusTodo,
-			Description: "Third test todo item",
+			Description: "Should be third",
+		},
+		{
+			ID:          3,
+			Status:      cli.StatusTodo,
+			Description: "Should be first",
+			Priority:    true,
+		},
+		{
+			ID:          4,
+			Status:      cli.StatusCompleted,
+			Description: "Should be fourth",
+			Priority:    true,
 		},
 	}
 
@@ -114,13 +126,21 @@ func TestListItemsInCorrectOrder(t *testing.T) {
 
 	stdOut, _ := utils.ExecuteCommand(fs, fmt.Sprint("list --all"))
 
-	expected := `
+	firstDescription := "3    TODO                 Should be first"
+	firstBold := fmt.Sprintf("%s", "\033[1m"+firstDescription+"\033[0m")
+
+	fourthDescription := "4    COMPLETED            Should be fourth"
+	fourthBold := fmt.Sprintf("%s", "\033[1m"+fourthDescription+"\033[0m")
+
+	expected := fmt.Sprintf(`
 	ID   STATUS               DESCRIPTION
 --------------------------------------------------------------------------------
-0    IN PROGRESS          First test todo item
-2    TODO                 Third test todo item
-1    COMPLETED            Second test todo item
-	`
+%s
+0    IN PROGRESS          Should be second
+2    TODO                 Should be third
+%s
+1    COMPLETED            Should be last
+	`, firstBold, fourthBold)
 
 	utils.AssertOutput(t, stdOut, expected)
 }
