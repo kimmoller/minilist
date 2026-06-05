@@ -6,6 +6,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/spf13/afero"
 )
@@ -23,10 +24,11 @@ type Data struct {
 }
 
 type Item struct {
-	ID          int    `json:"id"`
-	Status      Status `json:"status"`
-	Description string `json:"description"`
-	Priority    bool   `json:"priority"`
+	ID           int       `json:"id"`
+	Status       Status    `json:"status"`
+	Description  string    `json:"description"`
+	Priority     bool      `json:"priority"`
+	CreationTime time.Time `json:"creation_time"`
 }
 
 func DataDirPath() (string, error) {
@@ -106,9 +108,10 @@ func AddItem(fs afero.Fs, description string) error {
 		nextId = lastId + 1
 	}
 	newItem := Item{
-		ID:          nextId,
-		Status:      StatusTodo,
-		Description: description,
+		ID:           nextId,
+		Status:       StatusTodo,
+		Description:  description,
+		CreationTime: time.Now(),
 	}
 
 	data.Items = append(data.Items, newItem)

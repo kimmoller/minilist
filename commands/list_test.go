@@ -3,6 +3,7 @@ package commands_test
 import (
 	"fmt"
 	"testing"
+	"time"
 
 	"github.com/kimmoller/minilist/cli"
 	"github.com/kimmoller/minilist/utils"
@@ -24,9 +25,10 @@ func TestListItems(t *testing.T) {
 			Description: "Completed test todo item",
 		},
 		{
-			ID:          1,
-			Status:      cli.StatusTodo,
-			Description: "Second test todo item",
+			ID:           1,
+			Status:       cli.StatusTodo,
+			Description:  "Second test todo item",
+			CreationTime: time.Date(2026, 6, 5, 0, 0, 0, 0, time.UTC),
 		},
 		{
 			ID:          2,
@@ -42,11 +44,11 @@ func TestListItems(t *testing.T) {
 	expected := `
 --------------------------------- IN PROGRESS ----------------------------------
 
-2    Third test todo item
+2                 Third test todo item
 
 ------------------------------------- TODO -------------------------------------
 
-1    Second test todo item
+1    2026-06-05   Second test todo item
 	`
 
 	utils.AssertOutput(t, stdOut, expected)
@@ -80,14 +82,14 @@ func TestListAllItems(t *testing.T) {
 	expected := `
 --------------------------------- IN PROGRESS ----------------------------------
 
-0    First test todo item
+0                 First test todo item
 
 ------------------------------------- TODO -------------------------------------
 
 
 ---------------------------------- COMPLETED -----------------------------------
 
-1    Second test todo item
+1                 Second test todo item
 	`
 
 	utils.AssertOutput(t, stdOut, expected)
@@ -135,25 +137,25 @@ func TestListItemsInCorrectOrder(t *testing.T) {
 
 	stdOut, _ := utils.ExecuteCommand(fs, fmt.Sprint("list --all"))
 
-	firstDescription := "3    First in todo"
+	firstDescription := "3                 First in todo"
 	firstBold := fmt.Sprintf("%s", "\033[1m"+firstDescription+"\033[0m")
 
-	fourthDescription := "4    Last in completed"
+	fourthDescription := "4                 Last in completed"
 	fourthBold := fmt.Sprintf("%s", "\033[1m"+fourthDescription+"\033[0m")
 
 	expected := fmt.Sprintf(`
 --------------------------------- IN PROGRESS ----------------------------------
 
-0    Only one in progress
+0                 Only one in progress
 
 ------------------------------------- TODO -------------------------------------
 
 %s
-2    Second in todo
+2                 Second in todo
 
 ---------------------------------- COMPLETED -----------------------------------
 
-1    First in completed
+1                 First in completed
 %s
 	`, firstBold, fourthBold)
 

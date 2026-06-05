@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"slices"
 	"strings"
+	"time"
 
 	"github.com/kimmoller/minilist/cli"
 	"github.com/spf13/afero"
@@ -18,6 +19,7 @@ func NewListCmd(fs afero.Fs) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "list",
 		Short:   "List all todo items",
+		Long:    "List all todo items with ID, creation date and description",
 		Args:    cobra.ExactArgs(0),
 		Aliases: []string{"ls"},
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -90,7 +92,13 @@ func toStatusMap(items []cli.Item) map[cli.Status][]cli.Item {
 }
 
 func printItem(cmd *cobra.Command, item cli.Item) {
-	text := fmt.Sprintf("%-4d %s", item.ID, item.Description)
+	dateTime := item.CreationTime.Format(time.DateOnly)
+
+	text := fmt.Sprintf("%-4d %-12s %s", item.ID, dateTime, item.Description)
+	if item.CreationTime.IsZero() {
+		text = fmt.Sprintf("%-4d %-12s %s", item.ID, "", item.Description)
+	}
+
 	if item.Priority {
 		cmd.Printf("%s\n", "\033[1m"+text+"\033[0m")
 	} else {
