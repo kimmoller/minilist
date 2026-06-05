@@ -37,9 +37,14 @@ func TestDeleteItem(t *testing.T) {
 	stdOut, _ := utils.ExecuteCommand(fs, "list --all")
 
 	expected := `
-	ID   STATUS               DESCRIPTION
---------------------------------------------------------------------------------
-0    TODO                 First test todo item
+--------------------------------- IN PROGRESS ----------------------------------
+
+
+------------------------------------- TODO -------------------------------------
+
+0                 First test todo item
+
+---------------------------------- COMPLETED -----------------------------------
 	`
 
 	utils.AssertOutput(t, stdOut, expected)

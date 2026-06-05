@@ -26,9 +26,12 @@ func TestAddItem(t *testing.T) {
 	stdOut, _ := utils.ExecuteCommand(fs, "list")
 
 	expected := `
-	ID   STATUS               DESCRIPTION
---------------------------------------------------------------------------------
-0    TODO                 Test_todo_item
+--------------------------------- IN PROGRESS ----------------------------------
+
+
+------------------------------------- TODO -------------------------------------
+
+0    2026-06-05   Test_todo_item
 	`
 
 	utils.AssertOutput(t, stdOut, expected)
@@ -63,11 +66,14 @@ func TestAddItemWithGapInIds(t *testing.T) {
 	stdOut, _ := utils.ExecuteCommand(fs, "list")
 
 	expected := `
-	ID   STATUS               DESCRIPTION
---------------------------------------------------------------------------------
-2    IN PROGRESS          Second test todo item
-0    TODO                 First test todo item
-3    TODO                 Test_todo_item
+--------------------------------- IN PROGRESS ----------------------------------
+
+2                 Second test todo item
+
+------------------------------------- TODO -------------------------------------
+
+0                 First test todo item
+3    2026-06-05   Test_todo_item
 	`
 
 	utils.AssertOutput(t, stdOut, expected)
@@ -91,11 +97,14 @@ func TestAddMultipleItem(t *testing.T) {
 	stdOut, _ := utils.ExecuteCommand(fs, "list")
 
 	expected := `
-	ID   STATUS               DESCRIPTION
---------------------------------------------------------------------------------
-0    TODO                 Test_todo_item
-1    TODO                 Test_todo_item_2
-2    TODO                 Test_todo_item_3
+--------------------------------- IN PROGRESS ----------------------------------
+
+
+------------------------------------- TODO -------------------------------------
+
+0    2026-06-05   Test_todo_item
+1    2026-06-05   Test_todo_item_2
+2    2026-06-05   Test_todo_item_3
 	`
 
 	utils.AssertOutput(t, stdOut, expected)

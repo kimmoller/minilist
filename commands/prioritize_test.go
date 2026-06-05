@@ -37,14 +37,17 @@ func TestPrioritizeItem(t *testing.T) {
 
 	stdOut, _ := utils.ExecuteCommand(fs, "list")
 
-	toBold := "1    TODO                 Prioritized todo item"
+	toBold := "1                 Prioritized todo item"
 	boldText := fmt.Sprintf("%s", "\033[1m"+toBold+"\033[0m")
 
 	expected := fmt.Sprintf(`
-	ID   STATUS               DESCRIPTION
---------------------------------------------------------------------------------
+--------------------------------- IN PROGRESS ----------------------------------
+
+0                 Normal in progress item
+
+------------------------------------- TODO -------------------------------------
+
 %s
-0    IN PROGRESS          Normal in progress item
 		`, boldText)
 
 	utils.AssertOutput(t, stdOut, expected)
@@ -80,10 +83,12 @@ func TestPrioritizePrioritizedItem(t *testing.T) {
 	stdOut, _ := utils.ExecuteCommand(fs, "list")
 
 	expected := `
-	ID   STATUS               DESCRIPTION
---------------------------------------------------------------------------------
-0    IN PROGRESS          Unprioritized item
-1    IN PROGRESS          Prioritized item
+--------------------------------- IN PROGRESS ----------------------------------
+
+0                 Unprioritized item
+1                 Prioritized item
+
+------------------------------------- TODO -------------------------------------
 	`
 
 	utils.AssertOutput(t, stdOut, expected)

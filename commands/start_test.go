@@ -37,10 +37,15 @@ func TestStartItem(t *testing.T) {
 	stdOut, _ := utils.ExecuteCommand(fs, "list --all")
 
 	expected := `
-	ID   STATUS               DESCRIPTION
---------------------------------------------------------------------------------
-1    IN PROGRESS          Second test todo item
-0    TODO                 First test todo item
+--------------------------------- IN PROGRESS ----------------------------------
+
+1                 Second test todo item
+
+------------------------------------- TODO -------------------------------------
+
+0                 First test todo item
+
+---------------------------------- COMPLETED -----------------------------------
 	`
 
 	utils.AssertOutput(t, stdOut, expected)
@@ -74,10 +79,15 @@ func TestStartInProgressItem(t *testing.T) {
 	stdOut, _ := utils.ExecuteCommand(fs, "list --all")
 
 	expected := `
-	ID   STATUS               DESCRIPTION
---------------------------------------------------------------------------------
-0    IN PROGRESS          First test todo item
-1    IN PROGRESS          Second test todo item
+--------------------------------- IN PROGRESS ----------------------------------
+
+0                 First test todo item
+1                 Second test todo item
+
+------------------------------------- TODO -------------------------------------
+
+
+---------------------------------- COMPLETED -----------------------------------
 	`
 
 	utils.AssertOutput(t, stdOut, expected)
