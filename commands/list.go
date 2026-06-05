@@ -30,31 +30,10 @@ func NewListCmd(fs afero.Fs) *cobra.Command {
 
 			statusMap := toStatusMap(data.Items)
 
-			cmd.Printf("%s\n", strings.Repeat("-", 33)+" IN PROGRESS "+strings.Repeat("-", 34))
-			cmd.Println()
-
-			for _, item := range statusMap[cli.StatusInProgress] {
-				printItem(cmd, item)
-			}
-
-			cmd.Println()
-			cmd.Printf("%s\n", strings.Repeat("-", 37)+" TODO "+strings.Repeat("-", 37))
-			cmd.Println()
-
-			for _, item := range statusMap[cli.StatusTodo] {
-				printItem(cmd, item)
-			}
-
-			cmd.Println()
-
+			printCategory(cmd, cli.StatusInProgress, statusMap, 33, 34)
+			printCategory(cmd, cli.StatusTodo, statusMap, 37, 37)
 			if withCompleted {
-
-				cmd.Printf("%s\n", strings.Repeat("-", 34)+" COMPLETED "+strings.Repeat("-", 35))
-				cmd.Println()
-
-				for _, item := range statusMap[cli.StatusCompleted] {
-					printItem(cmd, item)
-				}
+				printCategory(cmd, cli.StatusCompleted, statusMap, 34, 35)
 			}
 
 			return nil
@@ -89,6 +68,15 @@ func toStatusMap(items []cli.Item) map[cli.Status][]cli.Item {
 		cli.StatusInProgress: inProgressList,
 		cli.StatusCompleted:  completedList,
 	}
+}
+
+func printCategory(cmd *cobra.Command, category cli.Status, statusMap map[cli.Status][]cli.Item, prefix int, postfix int) {
+	cmd.Printf("%s\n", strings.Repeat("-", prefix)+" "+string(category)+" "+strings.Repeat("-", postfix))
+	cmd.Println()
+	for _, item := range statusMap[category] {
+		printItem(cmd, item)
+	}
+	cmd.Println()
 }
 
 func printItem(cmd *cobra.Command, item cli.Item) {
