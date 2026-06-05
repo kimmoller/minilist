@@ -18,7 +18,7 @@ If another value has been set in `XDG_CONFIG_HOME` that value will be used inste
 
 ### List
 
-List all existing in progress items
+List todo items. By default the command will only show items that are todo or in progress
 
 ```
 minilist list
