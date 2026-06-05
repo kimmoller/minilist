@@ -6,6 +6,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/spf13/afero"
 )
@@ -18,27 +19,16 @@ const (
 	StatusCompleted  Status = "COMPLETED"
 )
 
-// TODO_MIGRATION: Remove in a future version
-type OldData struct {
-	Items []OldItem `json:"items"`
-}
-
-// TODO_MIGRATION: Remove in a future version
-type OldItem struct {
-	ID          int    `json:"id"`
-	Status      bool   `json:"status"`
-	Description string `json:"description"`
-}
-
 type Data struct {
 	Items []Item `json:"items"`
 }
 
 type Item struct {
-	ID          int    `json:"id"`
-	Status      Status `json:"status"`
-	Description string `json:"description"`
-	Priority    bool   `json:"priority"`
+	ID           int       `json:"id"`
+	Status       Status    `json:"status"`
+	Description  string    `json:"description"`
+	Priority     bool      `json:"priority"`
+	CreationTime time.Time `json:"creation_time"`
 }
 
 func DataDirPath() (string, error) {
@@ -118,9 +108,10 @@ func AddItem(fs afero.Fs, description string) error {
 		nextId = lastId + 1
 	}
 	newItem := Item{
-		ID:          nextId,
-		Status:      StatusTodo,
-		Description: description,
+		ID:           nextId,
+		Status:       StatusTodo,
+		Description:  description,
+		CreationTime: time.Now(),
 	}
 
 	data.Items = append(data.Items, newItem)
@@ -191,52 +182,6 @@ func TogglePriority(fs afero.Fs, id int) error {
 	data.Items[index].Priority = !data.Items[index].Priority
 
 	return WriteToDataFile(fs, data)
-}
-
-// TODO_MIGRATION: Remove in a future version
-func Migrate(fs afero.Fs) error {
-	_, err := ReadData(fs)
-	if err == nil {
-		return fmt.Errorf("Data already in the new format, nothing to migrate")
-	}
-
-	filePath, err := DataFilePath()
-	if err != nil {
-		return err
-	}
-
-	byteData, err := afero.ReadFile(fs, filePath)
-	if err != nil {
-		return err
-	}
-
-	var data OldData
-	err = json.Unmarshal(byteData, &data)
-	if err != nil {
-		return err
-	}
-
-	migratedData := Data{
-		Items: []Item{},
-	}
-	for i := 0; i < len(data.Items); i++ {
-		oldItem := data.Items[i]
-		status := oldItem.Status
-		var newStatus Status
-		if status {
-			newStatus = StatusCompleted
-		} else {
-			newStatus = StatusInProgress
-		}
-		newItem := Item{
-			ID:          oldItem.ID,
-			Status:      newStatus,
-			Description: oldItem.Description,
-		}
-		migratedData.Items = append(migratedData.Items, newItem)
-	}
-
-	return WriteToDataFile(fs, &migratedData)
 }
 
 func CreateDirIfMissing(fs afero.Fs) error {

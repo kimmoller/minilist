@@ -18,8 +18,6 @@ func NewCmd(fs afero.Fs) *cobra.Command {
 	cmd.AddCommand(NewCompleteCmd(fs))
 	cmd.AddCommand(NewStartCmd(fs))
 	cmd.AddCommand(NewPrioritizeCmd(fs))
-	// TODO_MIGRATION: Remove in a future version
-	cmd.AddCommand(NewMigrateCmd(fs))
 
 	return cmd
 }

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"slices"
 	"strings"
+	"time"
 
 	"github.com/kimmoller/minilist/cli"
 	"github.com/spf13/afero"
@@ -18,6 +19,7 @@ func NewListCmd(fs afero.Fs) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "list",
 		Short:   "List all todo items",
+		Long:    "List all todo items with ID, creation date and description",
 		Args:    cobra.ExactArgs(0),
 		Aliases: []string{"ls"},
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -26,22 +28,14 @@ func NewListCmd(fs afero.Fs) *cobra.Command {
 				return err
 			}
 
-			cmd.Printf("%-4s %-20s %s\n", "ID", "STATUS", "DESCRIPTION")
-			cmd.Println(strings.Repeat("-", 80))
+			statusMap := toStatusMap(data.Items)
 
-			items := sortItems(data.Items)
-
-			for _, item := range items {
-				if item.Status == cli.StatusCompleted && !withCompleted {
-					continue
-				}
-				text := fmt.Sprintf("%-4d %-20s %s", item.ID, item.Status, item.Description)
-				if item.Priority {
-					cmd.Printf("%s\n", "\033[1m"+text+"\033[0m")
-				} else {
-					cmd.Printf("%s\n", text)
-				}
+			printCategory(cmd, cli.StatusInProgress, statusMap, 33, 34)
+			printCategory(cmd, cli.StatusTodo, statusMap, 37, 37)
+			if withCompleted {
+				printCategory(cmd, cli.StatusCompleted, statusMap, 34, 35)
 			}
+
 			return nil
 		},
 	}
@@ -50,32 +44,66 @@ func NewListCmd(fs afero.Fs) *cobra.Command {
 	return cmd
 }
 
-// Sort items into a priority order: PRIORITY > IN_PROGRESS > TODO > COMPLETED
+func toStatusMap(items []cli.Item) map[cli.Status][]cli.Item {
+	todoList := []cli.Item{}
+	inProgressList := []cli.Item{}
+	completedList := []cli.Item{}
+
+	for _, item := range items {
+		switch item.Status {
+		case cli.StatusTodo:
+			todoList = append(todoList, item)
+		case cli.StatusInProgress:
+			inProgressList = append(inProgressList, item)
+		case cli.StatusCompleted:
+			completedList = append(completedList, item)
+		}
+	}
+
+	todoList = sortItems(todoList)
+	inProgressList = sortItems(inProgressList)
+
+	return map[cli.Status][]cli.Item{
+		cli.StatusTodo:       todoList,
+		cli.StatusInProgress: inProgressList,
+		cli.StatusCompleted:  completedList,
+	}
+}
+
+func printCategory(cmd *cobra.Command, category cli.Status, statusMap map[cli.Status][]cli.Item, prefix int, postfix int) {
+	cmd.Printf("%s\n", strings.Repeat("-", prefix)+" "+string(category)+" "+strings.Repeat("-", postfix))
+	cmd.Println()
+	for _, item := range statusMap[category] {
+		printItem(cmd, item)
+	}
+	cmd.Println()
+}
+
+func printItem(cmd *cobra.Command, item cli.Item) {
+	dateTime := item.CreationTime.Format(time.DateOnly)
+
+	text := fmt.Sprintf("%-4d %-12s %s", item.ID, dateTime, item.Description)
+	if item.CreationTime.IsZero() {
+		text = fmt.Sprintf("%-4d %-12s %s", item.ID, "", item.Description)
+	}
+
+	if item.Priority {
+		cmd.Printf("%s\n", "\033[1m"+text+"\033[0m")
+	} else {
+		cmd.Printf("%s\n", text)
+	}
+}
+
+// Sort items by priority
 func sortItems(items []cli.Item) []cli.Item {
 	itemsCopy := slices.Clone(items)
 
 	slices.SortFunc(itemsCopy, func(a cli.Item, b cli.Item) int {
-		// Sort everything before completed items
-		if a.Status == cli.StatusCompleted && b.Status != cli.StatusCompleted {
-			return 1
-		}
-		if b.Status == cli.StatusCompleted && a.Status != cli.StatusCompleted {
-			return -1
-		}
-
 		// Sort prioritized items over normal items
 		if a.Priority && !b.Priority {
 			return -1
 		}
 		if b.Priority && !a.Priority {
-			return 1
-		}
-
-		// Sort in_progress before todo items
-		if a.Status == cli.StatusInProgress && b.Status == cli.StatusTodo {
-			return -1
-		}
-		if b.Status == cli.StatusInProgress && a.Status == cli.StatusTodo {
 			return 1
 		}
 
